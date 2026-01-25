@@ -123,7 +123,7 @@ Each milestone builds on the previous one. Complete them in order!
 ### SvelteKit Basics (you said you know these!)
 - ✅ File-based routing: `src/routes/about/+page.svelte` → `/about`
 - ✅ Components: Reusable UI pieces
-- ✅ `$:` reactive statements
+- ✅ Svelte 5 runes: `$state`, `$derived`, `$effect`, `$props`
 
 ### What You'll Learn
 - 🆕 API Routes: `+server.ts` files that handle backend logic
@@ -131,12 +131,14 @@ Each milestone builds on the previous one. Complete them in order!
 - 🆕 MySQL with Node: Using `mysql2` to query databases
 - 🆕 Type-safe data transformations: TypeScript interfaces for clean code
 - 🆕 URL search params: `/tool-runs?status=failure&hostname=acme`
+- 🆕 Svelte 5 runes for reactivity: Modern reactive patterns with `$state` and `$derived`
 
 ## 🛠️ Tech Stack
 
 | What | Why |
 |------|-----|
 | **SvelteKit 2.44+** | Full-stack framework (frontend + backend) |
+| **Svelte 5** | Modern reactive framework with runes |
 | **TypeScript** | Type safety prevents bugs |
 | **adapter-node** | Deploys as a standalone Node.js server |
 | **mysql2** | Fast MySQL client for Node |
