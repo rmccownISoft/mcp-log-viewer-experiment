@@ -290,7 +290,7 @@ This is your landing page where users enter a session ID.
 <script lang="ts">
   import { goto } from '$app/navigation';
   
-  let sessionId = '';
+  let sessionId = $state('');
   
   function handleSearch() {
     if (sessionId.trim()) {
@@ -319,12 +319,12 @@ This is your landing page where users enter a session ID.
         id="session-id"
         type="text"
         bind:value={sessionId}
-        on:keydown={handleKeydown}
+        onkeydown={handleKeydown}
         placeholder="Paste session ID here..."
         class="session-input"
       />
       <button 
-        on:click={handleSearch}
+        onclick={handleSearch}
         disabled={!sessionId.trim()}
         class="search-button"
       >
@@ -451,10 +451,11 @@ This is your landing page where users enter a session ID.
 ```
 
 **Understanding the code**:
+- `$state('')` creates a reactive state variable that triggers UI updates when changed
 - `bind:value={sessionId}` creates two-way binding (input updates variable, variable updates input)
 - `goto()` is SvelteKit's navigation function (like React Router's navigate)
 - `encodeURIComponent()` handles special characters in URLs safely
-- `on:keydown` lets users press Enter to search
+- `onkeydown` is the modern Svelte 5 event handler syntax (no colon)
 - Button is disabled when input is empty (`disabled={!sessionId.trim()}`)
 
 **Accessibility tip**: We use a proper `<label>` with `for="session-id"` so clicking the label focuses the input.
@@ -472,16 +473,16 @@ This is the main timeline view showing all events for a session.
   import type { PageData } from './$types';
   import { page } from '$app/stores';
   
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
   
   // State for the detail drawer
-  let selectedEvent: typeof data.events[0] | null = null;
-  let showToolOnly = false;
+  let selectedEvent: typeof data.events[0] | null = $state(null);
+  let showToolOnly = $state(false);
   
   // Reactive filtered events
-  $: filteredEvents = showToolOnly 
+  let filteredEvents = $derived(showToolOnly 
     ? data.events.filter(e => e.toolName !== null)
-    : data.events;
+    : data.events);
   
   function formatTime(timestamp: Date | string): string {
     const date = new Date(timestamp);
@@ -565,7 +566,7 @@ This is the main timeline view showing all events for a session.
           class:has-tool={event.toolName !== null}
           class:success={event.toolStatus === 'success'}
           class:failure={event.toolStatus === 'failure'}
-          on:click={() => selectedEvent = event}
+          onclick={() => selectedEvent = event}
         >
           <div class="event-header">
             <span class="timestamp">{formatTime(event.timestamp)}</span>
@@ -606,12 +607,12 @@ This is the main timeline view showing all events for a session.
 
 <!-- Detail Drawer -->
 {#if selectedEvent}
-  <div class="drawer-overlay" on:click={closeDrawer}></div>
+  <div class="drawer-overlay" onclick={closeDrawer}></div>
   
   <div class="drawer">
     <div class="drawer-header">
       <h2>Event Details</h2>
-      <button class="close-btn" on:click={closeDrawer}>×</button>
+      <button class="close-btn" onclick={closeDrawer}>×</button>
     </div>
     
     <div class="drawer-content">
@@ -981,8 +982,9 @@ This is the main timeline view showing all events for a session.
 ```
 
 **Understanding the code**:
-- `export let data` receives data from the server loader (next step)
-- `$:` is Svelte's reactive statement - `filteredEvents` updates when `showToolOnly` changes
+- `let { data } = $props()` receives data from the server loader using the modern props syntax
+- `$state()` creates reactive state that triggers UI updates when changed
+- `$derived()` creates a derived value that automatically updates when dependencies change
 - The drawer uses fixed positioning to slide in from the right
 - `{#each}` loops over events, `(event.id)` is the unique key
 - Class binding like `class:success={condition}` applies the class when true
@@ -1250,8 +1252,8 @@ You've completed Milestone 1 when:
 2. **Server Load Functions**: `+page.server.ts` pre-fetches data on the server
 3. **API Endpoints**: `+server.ts` files create backend endpoints
 4. **JSON Parsing**: Safely handling JSON stored as TEXT in MySQL
-5. **Reactive Filtering**: Using `$:` to compute derived values
-6. **Component State**: Managing drawers and toggles with local state
+5. **Reactive State with Runes**: Using `$state` for reactive variables and `$derived` for computed values
+6. **Component State**: Managing drawers and toggles with reactive state
 7. **CSS Class Binding**: Dynamic styling with `class:name={condition}`
 
 ---
