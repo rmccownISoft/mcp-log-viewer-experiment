@@ -21,6 +21,9 @@ on:
 
 jobs:
   call-build-and-tag:
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/build-and-tag.yml
     with:
       GCR_NAME: ${{ inputs.name }}
