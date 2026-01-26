@@ -64,7 +64,8 @@
         return `${(ms / 1000).toFixed(2)}s`
     }
   
-    function formatTimestamp(date: Date): string {
+    function formatTimestamp(date: Date | undefined): string {
+        if (!date) return 'N/A'
         return new Date(date).toLocaleString()
     }
     
@@ -199,8 +200,21 @@
 
 <!-- Detail Modal -->
 {#if selectedRun}
-    <div class="modal-overlay" onclick={() => selectedRun = null}>
-        <div class="modal" onclick={(e) => e.stopPropagation()}>
+    <div 
+        class="modal-overlay" 
+        role="button" 
+        tabindex="0"
+        onclick={() => selectedRun = null}
+        onkeydown={(e) => e.key === 'Escape' && (selectedRun = null)}
+    >
+        <div 
+            class="modal" 
+            role="dialog" 
+            aria-modal="true"
+            tabindex="-1"
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+        >
             <div class="modal-header">
                 <h2>Tool Run Details</h2>
                 <button class="close-btn" onclick={() => selectedRun = null}>×</button>
@@ -265,6 +279,7 @@
         </div>
     </div>
 {/if}
+
 <style>
     .page {
       max-width: 1400px;
