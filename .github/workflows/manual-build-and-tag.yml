@@ -1,0 +1,31 @@
+name: manual-build-and-tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        type: string
+        required: true
+        default: 'master'
+      tag:
+        description: 'Tag to build and push to gcr.io'
+        type: string
+        required: true
+        default: 'dev'
+      name:
+        description: 'Name for build and push to gcr.io'
+        type: string
+        required: true
+        default: 'isoft-employee-client'
+
+jobs:
+  call-build-and-tag:
+    uses: ./.github/workflows/build-and-tag.yml
+    with:
+      GCR_NAME: ${{ inputs.name }}
+      GCR_TAG: ${{ inputs.tag }}
+      GITHUB_REF: ${{ inputs.branch }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GCR_SERVICE_ACCOUNT_KEY: ${{ secrets.GCR_SERVICE_ACCOUNT_KEY }}

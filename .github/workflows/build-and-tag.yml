@@ -1,0 +1,69 @@
+name: build-and-tag
+
+on:
+  workflow_call:
+    inputs:
+      GCR_NAME:
+        description: 'The name to use for the image'
+        required: true
+        type: string
+      GCR_TAG:
+        description: 'The tag to use for the image'
+        required: true
+        type: string
+      GITHUB_REF:
+        description: 'The branch name'
+        required: false
+        type: string
+
+    secrets:
+      NPM_TOKEN:
+        required: true
+      GCR_SERVICE_ACCOUNT_KEY:
+        required: true
+
+jobs:
+  build:
+    name: Build and Push Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.GITHUB_REF }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCR_SERVICE_ACCOUNT_KEY }}
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker -q
+
+      - name: Set up Docker Buildx # https://docs.docker.com/build/cache/backends/
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create .npmrc with token
+        run: |
+          cat << EOF > /tmp/.npmrc
+          @isoftdata:registry=https://registry.npmjs.org/
+          //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          EOF
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: gcr.io/enterprise-api-232119/${{ inputs.GCR_NAME }}:${{ inputs.GCR_TAG }}
+          secret-files: |
+            npmrc=/tmp/.npmrc
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
