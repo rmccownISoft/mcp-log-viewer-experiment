@@ -1,10 +1,12 @@
+import type { RowDataPacket } from 'mysql2'
+
 // Raw row from the database
-export interface LogRow {
+export interface LogRow extends RowDataPacket {
   id: number
   hostname: string 
   pid: number 
   source: string
-  timestamp: string
+  timestamp: Date
   level: string // info, debug, warn, error?
   message: string
   meta: string
