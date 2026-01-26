@@ -69,4 +69,6 @@ export interface ToolRun {
   resultKind: 'json' | 'text' | 'html'
   resultText: string
   gqlCount: number
+  gqlMaxTimeMs: number | null
+  timestamp?: Date
 }

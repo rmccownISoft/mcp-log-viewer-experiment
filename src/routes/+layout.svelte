@@ -5,26 +5,26 @@
 </script>
 
 <div class="layout">
-	<nav>
-		<div class="nav-brand">
-			<a href="/">MCP Log Explorer</a>
-		</div>
-		<div class="nav-links">
-			<a href="/sessions" class:active={page.url.pathname.startsWith('/sessions')}>
-			  Sessions
-			</a>
-			<a href="/tool-runs" class:active={page.url.pathname.startsWith('/tool-runs')}>
-			  Tool Runs
-			</a>
-			<a href="/prompts" class:active={page.url.pathname.startsWith('/prompts')}>
-			  Prompts
-			</a>
-		</div>
-	</nav>
-	
-	<div class="content">
-	  {@render children()}
-	</div>
+  <nav>
+  	<div class="nav-brand">
+  		<a href="/">MCP Log Explorer</a>
+  	</div>
+  	<div class="nav-links">
+  		<a href="/sessions" class:active={page.url.pathname.startsWith('/sessions')}>
+  		  Sessions
+  		</a>
+  		<a href="/tool-runs" class:active={page.url.pathname.startsWith('/tool-runs')}>
+  		  Tool Runs
+  		</a>
+  		<a href="/prompts" class:active={page.url.pathname.startsWith('/prompts')}>
+  		  Prompts
+  		</a>
+  	</div>
+  </nav>
+    
+  <div class="content">
+    {@render children()}
+  </div>
 </div>
 
 <style>
