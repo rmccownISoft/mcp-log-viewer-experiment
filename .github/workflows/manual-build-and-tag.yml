@@ -17,7 +17,7 @@ on:
         description: 'Name for build and push to gcr.io'
         type: string
         required: true
-        default: 'isoft-employee-client'
+        default: 'mcp-log-viewer-expirement'
 
 jobs:
   call-build-and-tag:
