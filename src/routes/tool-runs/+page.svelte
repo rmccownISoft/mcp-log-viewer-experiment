@@ -36,7 +36,7 @@
 		statusFilter = data.initialFilters?.status || ''
 		versionFilter = data.initialFilters?.version || ''
 		offset = data.initialFilters?.offset || 0
-		limit = data.initialFilters?.limit || 50
+		limit = data.initialFilters?.limit || 100
 	})
 
 	function handleSearch() {
@@ -204,7 +204,7 @@
 							<td>{run.mcpVersion || 'N/A'}</td>
 							<td>{run.hostname}</td>
 							<td class="user-preview"
-								>{run.userContext ? run.userContext.substring(0, 50) + '...' : 'N/A'}</td
+								>{run.userContext ? run.userContext.substring(0, 75) + '...' : 'N/A'}</td
 							>
 						</tr>
 					{/each}
@@ -436,7 +436,7 @@
 	}
 
 	.user-preview {
-		max-width: 300px;
+		max-width: 400px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
