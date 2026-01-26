@@ -471,7 +471,6 @@ This is the main timeline view showing all events for a session.
 ```svelte
 <script lang="ts">
   import type { PageData } from './$types';
-  import { page } from '$app/stores';
   
   let { data }: { data: PageData } = $props();
   
@@ -1051,8 +1050,10 @@ Let's add a link to the Session Explorer in your main navigation.
 **Action**: Edit `src/routes/+layout.svelte` (create it if it doesn't exist):
 
 ```svelte
-<script>
-  import { page } from '$app/stores';
+<script lang="ts">
+  import { page } from '$app/state';
+  
+  let { children } = $props();
 </script>
 
 <div class="layout">
@@ -1061,20 +1062,20 @@ Let's add a link to the Session Explorer in your main navigation.
       <a href="/">MCP Log Explorer</a>
     </div>
     <div class="nav-links">
-      <a href="/sessions" class:active={$page.url.pathname.startsWith('/sessions')}>
+      <a href="/sessions" class:active={page.url.pathname.startsWith('/sessions')}>
         Sessions
       </a>
-      <a href="/tool-runs" class:active={$page.url.pathname.startsWith('/tool-runs')}>
+      <a href="/tool-runs" class:active={page.url.pathname.startsWith('/tool-runs')}>
         Tool Runs
       </a>
-      <a href="/prompts" class:active={$page.url.pathname.startsWith('/prompts')}>
+      <a href="/prompts" class:active={page.url.pathname.startsWith('/prompts')}>
         Prompts
       </a>
     </div>
   </nav>
   
   <div class="content">
-    <slot />
+    {@render children()}
   </div>
 </div>
 
@@ -1139,10 +1140,12 @@ Let's add a link to the Session Explorer in your main navigation.
 ```
 
 **Understanding the code**:
-- `<slot />` is where child pages get rendered
+- `page` from `$app/state` is the Svelte 5 reactive state for accessing page data (replaces the deprecated `$app/stores`)
+- `let { children } = $props()` receives the child page content as a snippet
+- `{@render children()}` renders the child pages (replaces `<slot />` in Svelte 5)
 - `:global(body)` applies styles globally (not scoped to this component)
 - `class:active={condition}` adds the "active" class when true
-- `$page.url.pathname` gives the current URL path
+- `page.url.pathname` gives the current URL path (no $ prefix needed with the new reactive state)
 
 ---
 
