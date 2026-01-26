@@ -17,8 +17,6 @@ on:
         type: string
 
     secrets:
-      NPM_TOKEN:
-        required: true
       GCR_SERVICE_ACCOUNT_KEY:
         required: true
 
@@ -49,21 +47,12 @@ jobs:
       - name: Set up Docker Buildx # https://docs.docker.com/build/cache/backends/
         uses: docker/setup-buildx-action@v3
 
-      - name: Create .npmrc with token
-        run: |
-          cat << EOF > /tmp/.npmrc
-          @isoftdata:registry=https://registry.npmjs.org/
-          //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          EOF
-
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: gcr.io/enterprise-api-232119/${{ inputs.GCR_NAME }}:${{ inputs.GCR_TAG }}
-          secret-files: |
-            npmrc=/tmp/.npmrc
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false

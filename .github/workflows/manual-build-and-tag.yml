@@ -27,5 +27,4 @@ jobs:
       GCR_TAG: ${{ inputs.tag }}
       GITHUB_REF: ${{ inputs.branch }}
     secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GCR_SERVICE_ACCOUNT_KEY: ${{ secrets.GCR_SERVICE_ACCOUNT_KEY }}
