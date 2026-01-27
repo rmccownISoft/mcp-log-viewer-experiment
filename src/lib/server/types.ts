@@ -85,3 +85,31 @@ export interface ToolRun {
 	gqlMaxTimeMs: number | null
 	timestamp?: Date
 }
+
+export interface PromptSummary {
+	userContext: string
+	toolName: string
+	totalRuns: number
+	successCount: number
+	failureCount: number
+	avgDurationMs: number | null
+	minDurationMs: number | null
+	maxDurationMs: number | null
+	versionsUsed: string[]
+	exampleRunIds: number[] // not sure?
+}
+
+export interface VersionComparison {
+	userContext: string
+	toolName: string
+
+	byVersion: {
+		version: string
+		totalRuns: number
+		successCount: number
+		failureCount: number
+		successRate: number
+		avgDurationMs: number | null
+		exampleRunIds: number[]
+	}[]
+}
