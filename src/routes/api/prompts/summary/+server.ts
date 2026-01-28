@@ -2,11 +2,11 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { pool } from '$lib/server/db'
 import { parseToolRun } from '$lib/server/parsers'
-import { aggregateByPrompt } from '$lib/server/aggregators'
+import { aggregateByPrompt } from '$lib/server/aggregatorHelpers'
 
 export const GET: RequestHandler = async ({ url }) => {
 	// Parse query parameters
-	const hostname = url.searchParams.get('hostname') || ''
+	const companyCode = url.searchParams.get('companyCode') || ''
 	const toolName = url.searchParams.get('toolName') || ''
 	const minOccurrences = parseInt(url.searchParams.get('minOccurrences') || '1')
 	const limit = parseInt(url.searchParams.get('limit') || '1000') // Fetch more for aggregation
@@ -17,9 +17,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		const params: any[] = []
 
 		// Basic filters
-		if (hostname) {
-			sql += ' AND hostname = ?'
-			params.push(hostname)
+		if (companyCode) {
+			sql += ' AND company_code = ?'
+			params.push(companyCode)
 		}
 
 		// Add date range filter if provided
