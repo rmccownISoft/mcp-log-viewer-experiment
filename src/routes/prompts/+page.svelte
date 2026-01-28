@@ -1,14 +1,16 @@
 <script lang="ts">
 	import type { PromptSummary, VersionComparison } from '$lib/server/types'
 
+	let { data } = $props()
 	// TODO: this probably shouldn't be an obj, will its properties affect state change?
 	let filters = $state({
-		hostname: '',
+		companyCode: '',
 		toolName: '',
 		minOccurrences: 1
 	})
 
-	let summaries = $state<PromptSummary[]>([])
+	//let summaries = $state<PromptSummary[]>(data.summaries)
+	let summaries = $derived(data.summaries)
 	let loading = $state(false)
 	let error = $state('')
 
@@ -23,8 +25,8 @@
 		error = ''
 
 		const params = new URLSearchParams()
-		if (filters.hostname) {
-			params.set('hostname', filters.hostname)
+		if (filters.companyCode) {
+			params.set('companyCode', filters.companyCode)
 		}
 		if (filters.toolName) {
 			params.set('toolName', filters.toolName)
@@ -61,8 +63,8 @@
 			toolName: prompt.toolName
 		})
 
-		if (filters.hostname) {
-			params.set('hostname', filters.hostname)
+		if (filters.companyCode) {
+			params.set('companyCode', filters.companyCode)
 		}
 
 		try {
@@ -87,17 +89,24 @@
 		versionComparison = null
 	}
 
+	function handleModalOverlayKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault()
+			closeModal()
+		}
+	}
+
 	function truncate(text: string, maxLength: number): string {
 		if (text.length <= maxLength) return text
 		return text.slice(0, maxLength) + '...'
 	}
 
-	function formatPercentage(rate: number): string {
+	function formatPercentage(rate: number | undefined | null): string {
+		if (rate == null || isNaN(rate)) {
+			return '0.0%'
+		}
 		return `${rate.toFixed(1)}%`
 	}
-
-	// Initial load
-	fetchSummaries()
 </script>
 
 <div class="container">
@@ -113,9 +122,14 @@
 
 		<div class="filter-grid">
 			<div class="filter-group">
-				<label for="hostname">Hostname (Customer)</label>
+				<label for="companyCode">Company Code</label>
 
-				<input id="hostname" type="text" bind:value={filters.hostname} placeholder="e.g., stuff" />
+				<input
+					id="companyCode"
+					type="text"
+					bind:value={filters.companyCode}
+					placeholder="e.g., stuff"
+				/>
 			</div>
 			<div class="filter-group">
 				<label for="toolName">Tool Name</label>
@@ -143,7 +157,7 @@
 				</button>
 				<button
 					onclick={() => {
-						filters = { hostname: '', toolName: '', minOccurrences: 1 }
+						filters = { companyCode: '', toolName: '', minOccurrences: 1 }
 						fetchSummaries()
 					}}
 					disabled={loading}
@@ -194,7 +208,7 @@
 										class:medium={summary.successRate >= 70 && summary.successRate < 90}
 										class:low={summary.successRate < 70}
 									>
-										{formatPercent(summary.successRate)}
+										{formatPercentage(summary.successRate)}
 									</span>
 									<div class="count-detail">
 										{summary.successCount} / {summary.failureCount} / {summary.totalRuns -
@@ -234,7 +248,436 @@
 </div>
 
 {#if selectedPrompt && versionComparison}
-	<div class="modal-overlay" onclick={closeModal}>
-		<div class="modal" onclick={(e) => e.stopPropagation()}></div>
+	<div
+		class="modal-overlay"
+		onclick={closeModal}
+		onkeydown={handleModalOverlayKeydown}
+		role="button"
+		tabindex="0"
+		aria-label="Close modal"
+	>
+		<!-- svelte-ignore a11y_interactive_supports_focus (because of reasons) -->
+		<div
+			class="modal"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="modal-title"
+		>
+			<div class="modal-header">
+				<h2>Version Comparison: {selectedPrompt.toolName}</h2>
+				<button class="close-btn" onclick={closeModal}>&times;</button>
+			</div>
+
+			<div class="modal-body">
+				{#if loadingComparison}
+					<p>Loading comparison...</p>
+				{:else}
+					<!-- User Context -->
+					<div class="detail-section">
+						<h3>User Context</h3>
+						<div class="code-block">{versionComparison.userContext}</div>
+					</div>
+
+					<!-- Comparison Table -->
+					<div class="detail-section">
+						<h3>Performance by Version</h3>
+						<table class="comparison-table">
+							<thead>
+								<tr>
+									<th>Version</th>
+									<th>Total Runs</th>
+									<th>Success Rate</th>
+									<th>Avg Duration</th>
+									<th>Examples</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each versionComparison.byVersion as versionData}
+									<tr>
+										<td><code>{versionData.version}</code></td>
+										<td class="text-center">{versionData.totalRuns}</td>
+										<td>
+											<span
+												class="success-rate"
+												class:high={versionData.successRate >= 90}
+												class:medium={versionData.successRate >= 70 && versionData.successRate < 90}
+												class:low={versionData.successRate < 70}
+											>
+												{formatPercentage(versionData.successRate)}
+											</span>
+											<div class="count-detail">
+												{versionData.successCount} success / {versionData.failureCount} fail
+											</div>
+										</td>
+										<td class="text-center">
+											{#if versionData.avgDurationMs}
+												{versionData.avgDurationMs.toLocaleString()}ms
+											{:else}
+												-
+											{/if}
+										</td>
+										<td>
+											<a href="/tool-runs?id={versionData.exampleRunIds.join(',')}" target="_blank">
+												View {versionData.exampleRunIds.length} examples
+											</a>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+
+					<!-- Insights -->
+					<div class="detail-section">
+						<h3>Insights</h3>
+						{#if versionComparison.byVersion.length >= 2}
+							{@const sorted = [...versionComparison.byVersion].sort(
+								(a, b) => b.successRate - a.successRate
+							)}
+							{@const best = sorted[0]}
+							{@const worst = sorted[sorted.length - 1]}
+
+							<div class="insight-box">
+								<p>
+									<strong>Best performing:</strong>
+									<code>{best.version}</code> with {formatPercentage(best.successRate)} success rate
+								</p>
+								{#if best.version !== worst.version}
+									<p>
+										<strong>Worst performing:</strong>
+										<code>{worst.version}</code> with {formatPercentage(worst.successRate)} success rate
+									</p>
+									<p>
+										<strong>Improvement:</strong>
+										{(best.successRate - worst.successRate).toFixed(1)} percentage points
+									</p>
+								{/if}
+							</div>
+						{:else}
+							<p>Not enough version data for comparison.</p>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
 	</div>
 {/if}
+
+<style>
+	.container {
+		max-width: 1400px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+
+	h1 {
+		margin-bottom: 0.5rem;
+	}
+
+	.description {
+		color: #666;
+		margin-bottom: 2rem;
+	}
+
+	/* Filter Panel */
+	.filter-panel {
+		background: #f5f5f5;
+		padding: 1.5rem;
+		border-radius: 8px;
+		margin-bottom: 2rem;
+	}
+
+	.filter-panel h2 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+	}
+
+	.filter-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.filter-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.filter-group label {
+		font-size: 0.875rem;
+		font-weight: 500;
+		margin-bottom: 0.25rem;
+	}
+
+	.filter-group input,
+	.filter-group select {
+		padding: 0.5rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
+
+	.filter-actions {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.filter-actions button {
+		padding: 0.5rem 1.5rem;
+		background: #007bff;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.filter-actions button:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.filter-actions button:last-child {
+		background: #6c757d;
+	}
+
+	/* Results */
+	.results h2 {
+		margin-bottom: 1rem;
+	}
+
+	.error-banner {
+		background: #f8d7da;
+		color: #721c24;
+		padding: 1rem;
+		border-radius: 4px;
+		margin-bottom: 1rem;
+	}
+
+	.no-results {
+		text-align: center;
+		padding: 2rem;
+		color: #666;
+	}
+
+	/* Table */
+	.table-container {
+		overflow-x: auto;
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	thead {
+		background: #f8f9fa;
+	}
+
+	th {
+		padding: 1rem;
+		text-align: left;
+		font-weight: 600;
+		border-bottom: 2px solid #dee2e6;
+	}
+
+	td {
+		padding: 1rem;
+		border-bottom: 1px solid #dee2e6;
+	}
+
+	tbody tr:hover {
+		background: #f8f9fa;
+	}
+
+	.text-center {
+		text-align: center;
+	}
+
+	.user-context-preview {
+		max-width: 400px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		cursor: help;
+	}
+
+	.tool-name {
+		background: #e9ecef;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-family: monospace;
+		font-size: 0.875rem;
+	}
+
+	.success-rate {
+		font-weight: 600;
+		font-size: 1.1rem;
+	}
+
+	.success-rate.high {
+		color: #28a745;
+	}
+
+	.success-rate.medium {
+		color: #ffc107;
+	}
+
+	.success-rate.low {
+		color: #dc3545;
+	}
+
+	.count-detail {
+		font-size: 0.75rem;
+		color: #666;
+		margin-top: 0.25rem;
+	}
+
+	.versions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.version-badge {
+		background: #007bff;
+		color: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-family: monospace;
+	}
+
+	.version-more {
+		background: #6c757d;
+		color: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+	}
+
+	.btn-small {
+		padding: 0.5rem 1rem;
+		border: 1px solid #007bff;
+		background: white;
+		color: #007bff;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.875rem;
+		font-weight: 600;
+	}
+
+	.btn-small:hover {
+		background: #007bff;
+		color: white;
+	}
+
+	/* Modal */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+
+	.modal {
+		background: white;
+		border-radius: 8px;
+		max-width: 900px;
+		width: 90%;
+		max-height: 90vh;
+		overflow-y: auto;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem;
+		border-bottom: 1px solid #eee;
+	}
+
+	.modal-header h2 {
+		margin: 0;
+	}
+
+	.close-btn {
+		background: none;
+		border: none;
+		font-size: 2rem;
+		cursor: pointer;
+		color: #999;
+		line-height: 1;
+	}
+
+	.close-btn:hover {
+		color: #333;
+	}
+
+	.modal-body {
+		padding: 1.5rem;
+	}
+
+	.detail-section {
+		margin-bottom: 1.5rem;
+	}
+
+	.detail-section h3 {
+		margin-top: 0;
+		margin-bottom: 0.75rem;
+		color: #333;
+	}
+
+	.code-block {
+		background: #f5f5f5;
+		padding: 1rem;
+		border-radius: 4px;
+		overflow-x: auto;
+		font-family: monospace;
+		font-size: 0.875rem;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+	}
+
+	.comparison-table {
+		font-size: 0.9rem;
+	}
+
+	.comparison-table a {
+		color: #007bff;
+		text-decoration: none;
+	}
+
+	.comparison-table a:hover {
+		text-decoration: underline;
+	}
+
+	.insight-box {
+		background: #e7f3ff;
+		padding: 1rem;
+		border-left: 4px solid #007bff;
+		border-radius: 4px;
+	}
+
+	.insight-box p {
+		margin: 0.5rem 0;
+	}
+
+	.insight-box code {
+		background: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+	}
+</style>
