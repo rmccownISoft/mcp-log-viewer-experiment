@@ -92,6 +92,7 @@ export interface PromptSummary {
 	totalRuns: number
 	successCount: number
 	failureCount: number
+	successRate: number
 	avgDurationMs: number | null
 	minDurationMs: number | null
 	maxDurationMs: number | null
