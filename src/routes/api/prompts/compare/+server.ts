@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit'
 import type { RequestHandler } from './$types'
 import { pool } from '$lib/server/db'
 import { parseToolRun } from '$lib/server/parsers'
-import { compareByVersion } from '$lib/server/aggregators'
+import { compareByVersion } from '$lib/server/aggregatorHelpers'
 
 export const GET: RequestHandler = async ({ url }) => {
 	// Required parameters
