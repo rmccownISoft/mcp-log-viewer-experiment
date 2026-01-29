@@ -4,6 +4,7 @@
 
 	let { data } = $props()
 
+	let appNameItems = $derived(data.appNames || [])
 	// Initialize filters as mutable state (for two-way binding with inputs)
 	let hostname = $state('')
 	let companyCode = $state('')
@@ -113,7 +114,12 @@
 
 			<div class="filter-group">
 				<label for="appName">App Name</label>
-				<input id="appName" type="text" bind:value={appName} placeholder="e.g., enterprise-mcp" />
+				<select id="appName" bind:value={appName}>
+					<option value="">All</option>
+					{#each appNameItems as name}
+						<option value={name}>{name}</option>
+					{/each}
+				</select>
 			</div>
 
 			<div class="filter-group">
@@ -201,7 +207,11 @@
 								</span>
 							</td>
 							<td>{formatDuration(run.durationMs)}</td>
-							<td>{run.mcpVersion || 'N/A'}</td>
+							<td>
+								{#if run.mcpVersion}
+									<span class="version-badge">{run.mcpVersion}</span>
+								{/if}
+							</td>
 							<td>{run.hostname}</td>
 							<td class="user-preview"
 								>{run.userContext ? run.userContext.substring(0, 75) + '...' : 'N/A'}</td
@@ -261,7 +271,7 @@
 						<dt>Duration:</dt>
 						<dd>{formatDuration(selectedRun.durationMs)}</dd>
 						<dt>Version:</dt>
-						<dd>{selectedRun.mcpVersion || 'N/A'}</dd>
+						<dd>{selectedRun.mcpVersion}</dd>
 					</dl>
 				</div>
 
@@ -269,7 +279,22 @@
 					<h3>Context</h3>
 					<dl>
 						<dt>Session ID:</dt>
-						<dd class="monospace">{selectedRun.sessionId}</dd>
+						<dd class="monospace session-id-row">
+							{selectedRun.sessionId}
+							<a
+								href="/sessions/{selectedRun.sessionId}"
+								class="session-link"
+								title="View session details"
+								onclick={(e) => {
+									e.stopPropagation()
+									if (selectedRun) {
+										goto(`/sessions/${selectedRun.sessionId}`)
+									}
+								}}
+							>
+								<i class="fa fa-external-link" aria-hidden="true"></i>
+							</a>
+						</dd>
 						<dt>Hostname:</dt>
 						<dd>{selectedRun.hostname}</dd>
 						<dt>Company Code:</dt>
@@ -572,6 +597,12 @@
 		font-size: 0.875rem;
 	}
 
+	.session-id-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	.code-block {
 		background: #f5f5f5;
 		padding: 1rem;
@@ -588,5 +619,13 @@
 		padding: 1rem;
 		border-left: 4px solid #c00;
 		border-radius: 4px;
+	}
+	.version-badge {
+		background: #007bff;
+		color: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-family: monospace;
 	}
 </style>
