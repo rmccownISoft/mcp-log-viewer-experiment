@@ -1,6 +1,4 @@
-import type { PageServerLoad } from './$types'
-
-export const load: PageServerLoad = async ({ url, fetch }) => {
+export async function load({ url, fetch }) {
 	const params = new URLSearchParams()
 
 	// Extract query parameters from URL
