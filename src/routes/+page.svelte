@@ -6,8 +6,7 @@
 
 	let healthStatus = $state({ status: 'checking', database: 'unknown' })
 	let { data } = $props()
-	console.log('Page data:', data)
-	console.log('Session:', data?.session)
+	//$inspect(data)
 	onMount(async () => {
 		try {
 			const response = await fetch('api/health')
@@ -18,7 +17,7 @@
 	})
 </script>
 
-{#if data.session?.user}
+{#if data.session?.id}
 	<button
 		onclick={async () => {
 			await signOut()
@@ -27,77 +26,38 @@
 	>
 		Sign Out
 	</button>
+	<main>
+		<h1>MCP Log Explorer</h1>
+
+		<section class="health-check">
+			<h2>System Status</h2>
+			<p>
+				Database: <strong class:ok={healthStatus.database === 'connected'}>
+					{healthStatus.database}
+				</strong>
+			</p>
+		</section>
+
+		<section class="navigation">
+			<h2>Available Tools</h2>
+			<ul>
+				<li>
+					<a href="/sessions">Session Explorer</a>
+					<span class="badge coming-soon">Milestone 1</span>
+				</li>
+				<li>
+					<a href="/tool-runs">Tool Runs Browser</a>
+					<span class="badge coming-soon">Milestone 2</span>
+				</li>
+				<li>
+					<a href="/prompts">Prompt Summary</a>
+					<span class="badge coming-soon">Milestone 3</span>
+				</li>
+			</ul>
+		</section>
+	</main>
 {/if}
 
-<main>
-	<h1>MCP Log Explorer</h1>
-
-	<section class="health-check">
-		<h2>System Status</h2>
-		<p>
-			Database: <strong class:ok={healthStatus.database === 'connected'}>
-				{healthStatus.database}
-			</strong>
-		</p>
-	</section>
-
-	<section class="navigation">
-		<h2>Available Tools</h2>
-		<ul>
-			<li>
-				<a href="/sessions">Session Explorer</a>
-				<span class="badge coming-soon">Milestone 1</span>
-			</li>
-			<li>
-				<a href="/tool-runs">Tool Runs Browser</a>
-				<span class="badge coming-soon">Milestone 2</span>
-			</li>
-			<li>
-				<a href="/prompts">Prompt Summary</a>
-				<span class="badge coming-soon">Milestone 3</span>
-			</li>
-		</ul>
-	</section>
-</main>
-
-{#if data.session?.user}
-	<img src={data.session.user.image} alt={data.session.user.name} />
-	Hello {data.session.user.name}
-	<button>Logout</button>
-{:else}
-	<a href="/login">Login</a>
-{/if}
-
-<!-- <script lang="ts">
-  import { authClient } from "$lib/client";
-  const session = authClient.useSession();
-</script>
-    <div>
-      {#if $session.data}
-        <div>
-          <p>
-            {$session.data.user.name}
-          </p>
-          <button
-            on:click={async () => {
-              await authClient.signOut();
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      {:else}
-        <button
-          on:click={async () => {
-            await authClient.signIn.social({
-              provider: "github",
-            });
-          }}
-        >
-          Continue with GitHub
-        </button>
-      {/if}
-    </div> -->
 <style>
 	main {
 		max-width: 800px;
