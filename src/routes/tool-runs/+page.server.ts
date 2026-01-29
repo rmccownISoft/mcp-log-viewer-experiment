@@ -25,13 +25,11 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
 	if (version) params.set('version', version)
 	params.set('limit', limit)
 	params.set('offset', offset)
-	console.log('url origin?: ', url.origin)
 	try {
 		const response = await fetch(`${url.origin}/api/tool-runs?${params}`)
 		if (!response.ok) throw new Error('Failed to fetch')
 
 		const data = await response.json()
-		console.log(JSON.stringify(data))
 		return {
 			toolRuns: data.toolRuns,
 			hasMore: data.hasMore,

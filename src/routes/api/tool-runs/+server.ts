@@ -5,7 +5,6 @@ import { parseToolRun } from '$lib/server/parsers'
 import type { ToolRun } from '$lib/server/types'
 
 export const GET: RequestHandler = async ({ url }) => {
-	console.log('url: ', url)
 	// Parse query parameters
 	const hostname = url.searchParams.get('hostname') || ''
 	const companyCode = url.searchParams.get('companyCode') || ''
