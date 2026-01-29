@@ -6,11 +6,13 @@
 	let filters = $state({
 		companyCode: '',
 		toolName: '',
-		minOccurrences: 1
+		minOccurrences: 1,
+		appName: ''
 	})
 
 	//let summaries = $state<PromptSummary[]>(data.summaries)
 	let summaries = $derived(data.summaries)
+	let appNameItems = $derived(data.appNames || [])
 	let loading = $state(false)
 	let error = $state('')
 
@@ -34,7 +36,9 @@
 		if (filters.minOccurrences > 1) {
 			params.set('minOccurrences', String(filters.minOccurrences))
 		}
-
+		if (filters.appName) {
+			params.set('appName', filters.appName)
+		}
 		// Handle fetch, set loading flag
 		try {
 			const response = await fetch(`/api/prompts/summary?${params}`)
@@ -132,6 +136,15 @@
 				/>
 			</div>
 			<div class="filter-group">
+				<label for="appName">App Name</label>
+				<select id="appName" bind:value={filters.appName}>
+					<option value="">All</option>
+					{#each appNameItems as appName}
+						<option value={appName}>{appName}</option>
+					{/each}
+				</select>
+			</div>
+			<div class="filter-group">
 				<label for="toolName">Tool Name</label>
 				<input
 					id="toolName"
@@ -157,7 +170,7 @@
 				</button>
 				<button
 					onclick={() => {
-						filters = { companyCode: '', toolName: '', minOccurrences: 1 }
+						filters = { companyCode: '', toolName: '', minOccurrences: 1, appName: '' }
 						fetchSummaries()
 					}}
 					disabled={loading}
