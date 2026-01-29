@@ -201,7 +201,11 @@
 								</span>
 							</td>
 							<td>{formatDuration(run.durationMs)}</td>
-							<td>{run.mcpVersion || 'N/A'}</td>
+							<td>
+								{#if run.mcpVersion}
+									<span class="version-badge">{run.mcpVersion}</span>
+								{/if}
+							</td>
 							<td>{run.hostname}</td>
 							<td class="user-preview"
 								>{run.userContext ? run.userContext.substring(0, 75) + '...' : 'N/A'}</td
@@ -261,7 +265,7 @@
 						<dt>Duration:</dt>
 						<dd>{formatDuration(selectedRun.durationMs)}</dd>
 						<dt>Version:</dt>
-						<dd>{selectedRun.mcpVersion || 'N/A'}</dd>
+						<dd>{selectedRun.mcpVersion}</dd>
 					</dl>
 				</div>
 
@@ -588,5 +592,13 @@
 		padding: 1rem;
 		border-left: 4px solid #c00;
 		border-radius: 4px;
+	}
+	.version-badge {
+		background: #007bff;
+		color: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-family: monospace;
 	}
 </style>
