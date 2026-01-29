@@ -8,6 +8,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	// Parse query parameters
 	const companyCode = url.searchParams.get('companyCode') || ''
 	const toolName = url.searchParams.get('toolName') || ''
+	const appName = url.searchParams.get('appName')
 	const minOccurrences = parseInt(url.searchParams.get('minOccurrences') || '1')
 	const limit = parseInt(url.searchParams.get('limit') || '1000') // Fetch more for aggregation
 
@@ -36,6 +37,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			params.push(endDate)
 		}
 
+		if (appName) {
+			sql += ' AND app_name = ?'
+			params.push(appName)
+		}
 		// Order and limit
 		sql += ' ORDER BY timestamp DESC LIMIT ?'
 		params.push(limit)
