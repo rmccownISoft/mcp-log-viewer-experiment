@@ -24,13 +24,21 @@ export async function load({ url, fetch }) {
 	params.set('limit', limit)
 	params.set('offset', offset)
 	try {
-		const response = await fetch(`${url.origin}/api/tool-runs?${params}`)
-		if (!response.ok) throw new Error('Failed to fetch')
+		//const response = await fetch(`${url.origin}/api/tool-runs?${params}`)
+		//if (!response.ok) throw new Error('Failed to fetch')
 
-		const data = await response.json()
+		const [toolRunsResponse, appNamesResponse] = await Promise.all([
+			fetch(`/api/tool-runs?${params}`),
+			fetch(`/api/app-names`)
+		])
+		const toolRuns = await toolRunsResponse.json()
+
+		const appNamesData = await appNamesResponse.json()
+		//const data = await response.json()
 		return {
-			toolRuns: data.toolRuns,
-			hasMore: data.hasMore,
+			toolRuns: toolRuns.toolRuns,
+			hasMore: toolRuns.hasMore,
+			appNames: appNamesData.appNames || [],
 			initialFilters: {
 				hostname,
 				companyCode,

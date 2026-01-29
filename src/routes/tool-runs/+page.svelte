@@ -4,6 +4,7 @@
 
 	let { data } = $props()
 
+	let appNameItems = $derived(data.appNames || [])
 	// Initialize filters as mutable state (for two-way binding with inputs)
 	let hostname = $state('')
 	let companyCode = $state('')
@@ -113,7 +114,12 @@
 
 			<div class="filter-group">
 				<label for="appName">App Name</label>
-				<input id="appName" type="text" bind:value={appName} placeholder="e.g., enterprise-mcp" />
+				<select id="appName" bind:value={appName}>
+					<option value="">All</option>
+					{#each appNameItems as name}
+						<option value={name}>{name}</option>
+					{/each}
+				</select>
 			</div>
 
 			<div class="filter-group">
