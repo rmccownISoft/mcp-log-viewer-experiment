@@ -279,7 +279,22 @@
 					<h3>Context</h3>
 					<dl>
 						<dt>Session ID:</dt>
-						<dd class="monospace">{selectedRun.sessionId}</dd>
+						<dd class="monospace session-id-row">
+							{selectedRun.sessionId}
+							<a
+								href="/sessions/{selectedRun.sessionId}"
+								class="session-link"
+								title="View session details"
+								onclick={(e) => {
+									e.stopPropagation()
+									if (selectedRun) {
+										goto(`/sessions/${selectedRun.sessionId}`)
+									}
+								}}
+							>
+								<i class="fa fa-external-link" aria-hidden="true"></i>
+							</a>
+						</dd>
 						<dt>Hostname:</dt>
 						<dd>{selectedRun.hostname}</dd>
 						<dt>Company Code:</dt>
@@ -580,6 +595,12 @@
 	.monospace {
 		font-family: monospace;
 		font-size: 0.875rem;
+	}
+
+	.session-id-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.code-block {
