@@ -24,17 +24,3 @@ export const auth = betterAuth({
 })
 
 //www.better-auth.com/docs/authentication/google
-
-//auth-client.ts
-// https: import { createAuthClient } from 'better-auth/client'
-// const authClient = createAuthClient()
-
-// const signIn = async () => {
-// 	const data = await authClient.signIn.social({
-// 		provider: 'google'
-// 	})
-// }
-
-// http://localhost:3001/api/auth/callback/google
-
-// http://pfbonnet.dev/api/auth/callback/google
