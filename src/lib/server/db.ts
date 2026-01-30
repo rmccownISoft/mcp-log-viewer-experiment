@@ -10,60 +10,49 @@ export const getDockerSecret = (secretName: string) => {
 		return secretFromFile
 	} catch (err) {
 		console.error(`${secretName} file not present or not readable: ${err}`)
-
+		return undefined
 	}
 }
-
-
-// const dbConfig: PoolOptions = {
-// 	connectionLimit: 1,
-// 	database: process.env.ERRSOLE_DB_NAME,
-// 	host: process.env.ERRSOLE_DB_HOST,
-// 	user: process.env.ERRSOLE_DB_USER,
-// 	password: getDockerSecret(`ERRSOLE_DB_PASSWORD`) || process.env[`ERRSOLE_DB_PASSWORD`],
-// 	//password: process.env[`${productCode}_BINLOG_PASSWORD`],
-// }
-
 
 export const createConnectionPool = (config: PoolOptions, name: string): Pool => {
 	const pool = mysql.createPool(config)
 
-    console.debug(`${name} connection pool created`)
+	console.debug(`${name} connection pool created`)
 
 	return pool
 }
 
 export const closeConnectionPool = async (pool: Pool, name: string): Promise<void> => {
-    try {
-        await pool.end()
-        console.debug(`${name} connection pool closed`)
-    } catch (err) {
-        console.error(`Error closing ${name} pool:`, err)
+	try {
+		await pool.end()
+		console.debug(`${name} connection pool closed`)
+	} catch (err) {
+		console.error(`Error closing ${name} pool:`, err)
 		throw err
-    }
+	}
 }
 
 const pool = mysql.createPool({
-    connectionLimit: 10,
+	connectionLimit: 10,
 	database: env.ERRSOLE_DB_NAME,
 	host: env.ERRSOLE_DB_HOST,
 	user: env.ERRSOLE_DB_USER,
 	password: getDockerSecret(`ERRSOLE_DB_PASSWORD`) || env.ERRSOLE_DB_PASSWORD,
-    queueLimit: 0,
-    waitForConnections: true
+	queueLimit: 0,
+	waitForConnections: true
 })
 
 // Log connection info (without password) for debugging
-console.log('Database pool created with:', {
-    host: env.ERRSOLE_DB_HOST,
-    database: env.ERRSOLE_DB_NAME,
-    user: env.ERRSOLE_DB_USER,
-    hasPassword: !!env.ERRSOLE_DB_PASSWORD
+console.debug('Database pool created with:', {
+	host: env.ERRSOLE_DB_HOST,
+	database: env.ERRSOLE_DB_NAME,
+	user: env.ERRSOLE_DB_USER,
+	hasPassword: !!env.ERRSOLE_DB_PASSWORD
 })
 
 // For complex ops?
 export async function getConnection() {
-    return await pool.getConnection()
+	return await pool.getConnection()
 }
 
 export { pool }

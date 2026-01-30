@@ -6,6 +6,8 @@ import { env } from '$env/dynamic/private'
 export const auth = betterAuth({
 	secret: env.BETTER_AUTH_SECRET,
 	baseURL: env.BETTER_AUTH_BASE_URL,
+	// Allow localhost for health checks and local testing
+	trustedOrigins: ['http://localhost:3001', 'https://pfbonnet.dev'],
 	database: createPool({
 		connectionLimit: 10,
 		database: env.AUTH_DB,
@@ -17,24 +19,11 @@ export const auth = betterAuth({
 	}),
 	socialProviders: {
 		google: {
-			clientId: env.GOOGLE_CLIENT_ID as string,
-			clientSecret: env.GOOGLE_CLIENT_SECRET as string
+			clientId: env.GOOGLE_CLIENT_ID || '',
+			clientSecret: env.GOOGLE_CLIENT_SECRET || '',
+			enabled: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 		}
 	}
 })
 
 //www.better-auth.com/docs/authentication/google
-
-//auth-client.ts
-// https: import { createAuthClient } from 'better-auth/client'
-// const authClient = createAuthClient()
-
-// const signIn = async () => {
-// 	const data = await authClient.signIn.social({
-// 		provider: 'google'
-// 	})
-// }
-
-// http://localhost:3001/api/auth/callback/google
-
-// http://pfbonnet.dev/api/auth/callback/google
