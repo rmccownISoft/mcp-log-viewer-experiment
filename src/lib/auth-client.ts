@@ -1,12 +1,7 @@
 import { createAuthClient } from 'better-auth/svelte'
-export const authClient = createAuthClient({})
+
+export const authClient = createAuthClient({
+	baseURL: import.meta.env.VITE_BETTER_AUTH_BASE_URL || 'http://localhost:3001'
+})
 
 export const { signIn, signUp, signOut, useSession } = authClient
-
-// import { createAuthClient } from "better-auth/client";
-// const authClient = createAuthClient();
-// const signIn = async () => {
-//   const data = await authClient.signIn.social({
-//     provider: "google",
-//   });
-// };
