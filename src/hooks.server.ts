@@ -15,7 +15,7 @@ export async function handle({ event, resolve }) {
 	}
 
 	// Public routes that don't require authentication
-	const publicRoutes = ['/login', '/api/auth']
+	const publicRoutes = ['/login', '/api/auth', '/api/health']
 	const isPublicRoute = publicRoutes.some((route) => event.url.pathname.startsWith(route))
 
 	// Redirect to login if not authenticated and trying to access protected route
