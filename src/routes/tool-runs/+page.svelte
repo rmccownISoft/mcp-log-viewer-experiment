@@ -15,7 +15,7 @@
 	let statusFilter = $state('')
 	let versionFilter = $state('')
 	let showFailuresOnly = $state(false)
-
+	let limit = $state(1000)
 	// Results - derived from data prop
 	let toolRuns = $derived(data.toolRuns)
 	let loading = $state(false)
@@ -24,7 +24,6 @@
 	let selectedRun = $state<ToolRun | null>(null)
 
 	let offset = $state(0)
-	let limit = $state(50)
 
 	// Sync state with URL/data whenever navigation occurs
 	$effect(() => {
@@ -37,7 +36,7 @@
 		statusFilter = data.initialFilters?.status || ''
 		versionFilter = data.initialFilters?.version || ''
 		offset = data.initialFilters?.offset || 0
-		limit = data.initialFilters?.limit || 100
+		limit = data.initialFilters?.limit || 1000
 	})
 
 	function handleSearch() {
@@ -95,7 +94,7 @@
 	}
 </script>
 
-<div class="page">
+<div class="container">
 	<h1>Tool Runs Browser</h1>
 
 	<div class="filters">
@@ -157,6 +156,18 @@
 					placeholder="Search in messages"
 				/>
 			</div>
+			<div class="filter-group">
+				<label for="limit">Result Limit</label>
+				<input
+					id="limit"
+					type="number"
+					bind:value={limit}
+					min="100"
+					max="50000"
+					step="1000"
+					placeholder="10000"
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -213,9 +224,7 @@
 								{/if}
 							</td>
 							<td>{run.hostname}</td>
-							<td class="user-preview"
-								>{run.userContext ? run.userContext.substring(0, 75) + '...' : 'N/A'}</td
-							>
+							<td class="user-preview">{run.userContext || 'N/A'}</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -341,8 +350,8 @@
 {/if}
 
 <style>
-	.page {
-		max-width: 1400px;
+	.container {
+		max-width: 1600px;
 		margin: 0 auto;
 		padding: 2rem;
 	}
@@ -461,7 +470,7 @@
 	}
 
 	.user-preview {
-		max-width: 400px;
+		max-width: 600px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
