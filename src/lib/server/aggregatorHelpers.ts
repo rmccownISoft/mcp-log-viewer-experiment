@@ -49,7 +49,7 @@ export function aggregateByPrompt(toolRuns: ToolRun[]): PromptSummary[] {
 			totalRuns: runs.length,
 			successCount,
 			failureCount,
-			//successRate: runs.length > 0 ? (successCount / runs.length) * 100 : 0,
+			successRate: runs.length > 0 ? (successCount / runs.length) * 100 : 0,
 			avgDurationMs: avgDurationMs ? Math.round(avgDurationMs) : null,
 			minDurationMs,
 			maxDurationMs,
