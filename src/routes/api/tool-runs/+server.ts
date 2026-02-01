@@ -13,13 +13,13 @@ export const GET: RequestHandler = async ({ url }) => {
 	const q = url.searchParams.get('q') || '' // Text search
 	const limit = parseInt(url.searchParams.get('limit') || '50')
 	const offset = parseInt(url.searchParams.get('offset') || '0')
-
+	const id = url.searchParams.get('id') || ''
 	// Additional filters to apply after parsing
 	const toolName = url.searchParams.get('toolName') || ''
 	const status = url.searchParams.get('status') || ''
 	const version = url.searchParams.get('version') || ''
 	const userContextSearch = url.searchParams.get('userContextSearch') || ''
-
+	console.log('id: ', id)
 	try {
 		// Build SQL query with basic filters
 		let sql = 'SELECT * FROM errsole_logs_v3 WHERE 1=1'
@@ -52,6 +52,18 @@ export const GET: RequestHandler = async ({ url }) => {
 			params.push(q)
 		}
 
+		if (id) {
+			// Split comma-separated IDs and convert to numbers
+			const ids = id
+				.split(',')
+				.map((i) => parseInt(i.trim()))
+				.filter((i) => !isNaN(i))
+			if (ids.length > 0) {
+				sql += ' AND id IN (?)'
+				params.push(ids)
+			}
+		}
+
 		// Order by timestamp descending (most recent first)
 		sql += ' ORDER BY timestamp DESC, id DESC'
 
@@ -60,7 +72,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		const fetchLimit = Math.min(limit * 10, 5000)
 		sql += ' LIMIT ? OFFSET ?'
 		params.push(fetchLimit, offset)
-
+		console.log('sql: ', sql)
 		// Execute query
 		const [rows] = await pool.query(sql, params)
 
