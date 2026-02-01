@@ -11,7 +11,7 @@ export async function load({ url, fetch }) {
 	const status = url.searchParams.get('status')
 	const version = url.searchParams.get('version')
 	const id = url.searchParams.get('id')
-	const limit = url.searchParams.get('limit') || '50'
+	const limit = url.searchParams.get('limit') || '1000'
 	const offset = url.searchParams.get('offset') || '0'
 
 	if (hostname) params.set('hostname', hostname)
