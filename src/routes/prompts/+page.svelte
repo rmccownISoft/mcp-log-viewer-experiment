@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PromptSummary, VersionComparison } from '$lib/server/types'
+	import { goto } from '$app/navigation'
 
 	let { data } = $props()
 	// TODO: this probably shouldn't be an obj, will its properties affect state change?
@@ -355,8 +356,19 @@
 											{/if}
 										</td>
 										<td>
-											<a href="/tool-runs?id={versionData.exampleRunIds.join(',')}" target="_blank">
-												View {versionData.exampleRunIds.length} examples
+											<a
+												href="/tool-runs?id={versionData.exampleRunIds.join(',')}"
+												target="_blank"
+												title="View Tool Runs"
+												onclick={(e) => {
+													e.stopPropagation()
+													if (versionData.exampleRunIds.length) {
+														goto(`/tool-runs?id=${versionData.exampleRunIds.join(',')}`)
+													}
+												}}
+											>
+												View Tool Runs
+												<i class="fa fa-external-link" aria-hidden="true"></i>
 											</a>
 										</td>
 									</tr>
