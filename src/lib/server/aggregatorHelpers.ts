@@ -102,7 +102,7 @@ export function compareByVersion(
 				? Math.round(durationsMs.reduce((sum, d) => sum + d, 0) / durationsMs.length)
 				: null
 
-		const exampleRunIds = runs.slice(0, 3).map((r) => r.id)
+		const exampleRunIds = runs.map((r) => r.id)
 
 		return {
 			version,
