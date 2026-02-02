@@ -140,7 +140,8 @@ export function rowToEvent(row: LogRow): Event {
 		userName: extractUserName(row.message),
 		userContext: extractUserContext(metaObj),
 		toolStatus: getToolStatus(metaObj),
-		resultPreview: getResultPreview(metaObj)
+		gqlQuery: extractToolQuery(metaObj),
+		resultText: extractToolResult(metaObj)
 	}
 }
 
