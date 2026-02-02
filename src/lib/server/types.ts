@@ -57,7 +57,8 @@ export interface Event {
 	userName: string | null
 	userContext: string | null
 	toolStatus: 'success' | 'failure' | 'unknown' | 'none'
-	resultPreview: string | null
+	resultText: Array<string> | null
+	gqlQuery: string | null
 }
 
 // Type for dynamic parameters object with unknown keys
