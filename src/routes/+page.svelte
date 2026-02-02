@@ -43,15 +43,12 @@
 			<ul>
 				<li>
 					<a href="/sessions">Session Explorer</a>
-					<span class="badge coming-soon">Milestone 1</span>
 				</li>
 				<li>
 					<a href="/tool-runs">Tool Runs Browser</a>
-					<span class="badge coming-soon">Milestone 2</span>
 				</li>
 				<li>
 					<a href="/prompts">Prompt Summary</a>
-					<span class="badge coming-soon">Milestone 3</span>
 				</li>
 			</ul>
 		</section>
@@ -104,15 +101,5 @@
 		text-decoration: none;
 		font-weight: 500;
 		font-size: 1.1rem;
-	}
-
-	.badge {
-		display: inline-block;
-		padding: 0.25rem 0.5rem;
-		background: #ffc107;
-		color: #333;
-		border-radius: 4px;
-		font-size: 0.8rem;
-		margin-left: 0.5rem;
 	}
 </style>
