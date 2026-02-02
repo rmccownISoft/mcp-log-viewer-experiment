@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
 	import { authClient } from '$lib/auth-client'
-	import { invalidateAll } from '$app/navigation'
-	import { signIn, signOut } from '$lib/auth-client'
+	import { signIn } from '$lib/auth-client'
 
 	let healthStatus = $state({ status: 'checking', database: 'unknown' })
 	let { data } = $props()
@@ -18,14 +17,6 @@
 </script>
 
 {#if data.session?.id}
-	<button
-		onclick={async () => {
-			await signOut()
-			invalidateAll()
-		}}
-	>
-		Sign Out
-	</button>
 	<main>
 		<h1>MCP Log Explorer</h1>
 
