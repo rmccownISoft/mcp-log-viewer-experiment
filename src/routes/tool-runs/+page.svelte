@@ -92,6 +92,56 @@
 				return 'badge-unknown'
 		}
 	}
+
+	function formatResult(resultText: Array<string> | null): { formatted: string; isJson: boolean } {
+		if (!resultText || resultText.length === 0) {
+			return { formatted: 'No result', isJson: false }
+		}
+
+		// Join all result strings
+		const combinedText = resultText.join('\n\n')
+
+		try {
+			// Try to parse as JSON - if it's a single JSON string
+			const parsed = JSON.parse(combinedText)
+			return {
+				formatted: JSON.stringify(parsed, null, 2),
+				isJson: true
+			}
+		} catch {
+			// Not JSON, or multiple items - try formatting each individually
+			const formatted = resultText
+				.map((text) => {
+					try {
+						const parsed = JSON.parse(text)
+						return JSON.stringify(parsed, null, 2)
+					} catch {
+						return text
+					}
+				})
+				.join('\n\n---\n\n')
+
+			return {
+				formatted,
+				isJson: false
+			}
+		}
+	}
+
+	let formattedResult = $derived(selectedRun ? formatResult(selectedRun.resultText) : null)
+	let copied = $state(false)
+
+	async function copyToClipboard(text: string) {
+		try {
+			await navigator.clipboard.writeText(text)
+			copied = true
+			setTimeout(() => {
+				copied = false
+			}, 2000)
+		} catch (err) {
+			console.error('Failed to copy:', err)
+		}
+	}
 </script>
 
 <div class="container">
@@ -318,7 +368,7 @@
 					<pre class="code-block">{selectedRun.userContext}</pre>
 				</div>
 
-				{#if selectedRun.status === 'failure' && selectedRun.errorClass}
+				<!-- {#if selectedRun.status === 'failure' && selectedRun.errorClass}
 					<div class="detail-section error-section">
 						<h3>Error Details</h3>
 						<dl>
@@ -326,11 +376,27 @@
 							<dd>{selectedRun.errorClass}</dd>
 						</dl>
 					</div>
-				{/if}
+				{/if} -->
 
 				<div class="detail-section">
-					<h3>Result ({selectedRun.resultKind})</h3>
-					<pre class="code-block">{selectedRun.resultText}</pre>
+					<div class="section-header">
+						<h3>Result {formattedResult?.isJson ? '(JSON)' : ''}</h3>
+						<button
+							class="copy-btn"
+							onclick={() => formattedResult && copyToClipboard(formattedResult.formatted)}
+							title="Copy to clipboard"
+						>
+							{#if copied}
+								✓ Copied!
+							{:else}
+								📋 Copy
+							{/if}
+						</button>
+					</div>
+					<pre
+						class="code-block result-block {formattedResult?.isJson
+							? 'json-result'
+							: ''}">{formattedResult?.formatted}</pre>
 				</div>
 
 				<div class="detail-section">
@@ -579,6 +645,33 @@
 		margin-bottom: 1.5rem;
 	}
 
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.75rem;
+	}
+
+	.section-header h3 {
+		margin: 0;
+		color: #333;
+	}
+
+	.copy-btn {
+		padding: 0.375rem 0.75rem;
+		background: #007bff;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.875rem;
+		transition: background 0.2s;
+	}
+
+	.copy-btn:hover {
+		background: #0056b3;
+	}
+
 	.detail-section h3 {
 		margin-top: 0;
 		margin-bottom: 0.75rem;
@@ -621,6 +714,20 @@
 		font-size: 0.875rem;
 		white-space: pre-wrap;
 		word-wrap: break-word;
+	}
+
+	.result-block {
+		max-height: 400px;
+		overflow-y: auto;
+		overflow-x: auto;
+		border: 1px solid #ddd;
+	}
+
+	.json-result {
+		background: #1e1e1e;
+		color: #d4d4d4;
+		padding: 1rem;
+		line-height: 1.5;
 	}
 
 	.error-section {
