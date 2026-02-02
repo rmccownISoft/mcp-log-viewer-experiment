@@ -91,41 +91,60 @@
 					onclick={() => (selectedToolRun = toolRun)}
 				>
 					<div class="event-header">
-						<span class="timestamp"
-							>{toolRun.timestamp ? formatTime(toolRun.timestamp) : 'N/A'}</span
-						>
-						<span
-							class="status-badge"
-							class:success={toolRun.status === 'success'}
-							class:failure={toolRun.status === 'failure'}
-						>
-							{getStatusIcon(toolRun.status)}
-							{toolRun.status}
-						</span>
+						<div class="tool-name-section">
+							<span class="tool-icon">🔧</span>
+							<span class="tool-name">{toolRun.toolName}</span>
+						</div>
+						<div class="header-meta">
+							<span class="timestamp"
+								>{toolRun.timestamp ? formatTime(toolRun.timestamp) : 'N/A'}</span
+							>
+							<span
+								class="status-badge"
+								class:success={toolRun.status === 'success'}
+								class:failure={toolRun.status === 'failure'}
+							>
+								{getStatusIcon(toolRun.status)}
+								{toolRun.status}
+							</span>
+						</div>
 					</div>
 
 					<div class="event-body">
-						<div class="tool-name">
-							🔧 {toolRun.toolName}
-						</div>
-
 						{#if toolRun.userContext}
-							<div class="user-context-preview">
-								{toolRun.userContext.substring(0, 100)}{toolRun.userContext.length > 100
-									? '...'
-									: ''}
+							<div class="preview-section">
+								<div class="preview-label">Prompt:</div>
+								<div class="preview-content user-context-preview">
+									{toolRun.userContext.substring(0, 150)}{toolRun.userContext.length > 150
+										? '...'
+										: ''}
+								</div>
 							</div>
 						{/if}
 
-						{#if toolRun.durationMs !== null}
-							<div class="metadata">
-								Duration: <span class="duration"
-									>{toolRun.durationMs < 1000
-										? `${toolRun.durationMs}ms`
-										: `${(toolRun.durationMs / 1000).toFixed(2)}s`}</span
-								>
+						{#if toolRun.resultText && toolRun.resultText.length > 0}
+							<div class="preview-section">
+								<div class="preview-label">Result:</div>
+								<div class="preview-content result-preview">
+									{toolRun.resultText[0].substring(0, 150)}{toolRun.resultText[0].length > 150
+										? '...'
+										: ''}
+								</div>
 							</div>
 						{/if}
+
+						<div class="event-footer">
+							{#if toolRun.durationMs !== null}
+								<span class="metadata-item">
+									⏱️ {toolRun.durationMs < 1000
+										? `${toolRun.durationMs}ms`
+										: `${(toolRun.durationMs / 1000).toFixed(2)}s`}
+								</span>
+							{/if}
+							{#if toolRun.gqlCount > 0}
+								<span class="metadata-item">📊 {toolRun.gqlCount} GQL calls</span>
+							{/if}
+						</div>
 					</div>
 				</button>
 			{/each}
@@ -264,12 +283,36 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.75rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid #f0f0f0;
+	}
+
+	.tool-name-section {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.tool-icon {
+		font-size: 1.2rem;
+	}
+
+	.tool-name {
+		font-weight: 600;
+		font-size: 1rem;
+		color: #2196f3;
+	}
+
+	.header-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 
 	.timestamp {
 		font-family: 'Courier New', monospace;
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 		color: #666;
 	}
 
@@ -278,6 +321,7 @@
 		border-radius: 12px;
 		font-size: 0.85rem;
 		font-weight: 600;
+		white-space: nowrap;
 	}
 
 	.status-badge.success {
@@ -293,17 +337,58 @@
 	.event-body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: 0.75rem;
 	}
 
-	.tool-name {
+	.preview-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.preview-label {
+		font-size: 0.75rem;
 		font-weight: 600;
-		color: #2196f3;
+		text-transform: uppercase;
+		color: #666;
+		letter-spacing: 0.5px;
 	}
 
-	.metadata {
+	.preview-content {
 		font-size: 0.9rem;
+		line-height: 1.4;
+		padding: 0.5rem;
+		border-radius: 4px;
+		background: #f8f9fa;
+		border-left: 3px solid #e0e0e0;
+	}
+
+	.user-context-preview {
+		color: #333;
+	}
+
+	.result-preview {
+		font-family: 'Courier New', monospace;
+		color: #555;
+		font-size: 0.85rem;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.event-footer {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		padding-top: 0.5rem;
+		border-top: 1px solid #f0f0f0;
+		font-size: 0.85rem;
+	}
+
+	.metadata-item {
 		color: #666;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 	}
 
 	/* Modal */
