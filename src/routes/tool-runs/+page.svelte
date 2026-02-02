@@ -128,8 +128,16 @@
 		}
 	}
 
+	function formatQuery(queryText: string | null): string | null {
+		if (!queryText) return null
+		// GraphQL queries are already formatted text, just return as-is
+		return queryText.trim()
+	}
+
 	let formattedResult = $derived(selectedRun ? formatResult(selectedRun.resultText) : null)
+	let formattedQuery = $derived(selectedRun ? formatQuery(selectedRun.gqlQuery) : null)
 	let copied = $state(false)
+	let queryCopied = $state(false)
 
 	async function copyToClipboard(text: string) {
 		try {
@@ -137,6 +145,18 @@
 			copied = true
 			setTimeout(() => {
 				copied = false
+			}, 2000)
+		} catch (err) {
+			console.error('Failed to copy:', err)
+		}
+	}
+
+	async function copyQueryToClipboard(text: string) {
+		try {
+			await navigator.clipboard.writeText(text)
+			queryCopied = true
+			setTimeout(() => {
+				queryCopied = false
 			}, 2000)
 		} catch (err) {
 			console.error('Failed to copy:', err)
@@ -400,7 +420,22 @@
 				</div>
 
 				<div class="detail-section">
-					<h3>GraphQL Metadata</h3>
+					<div class="section-header">
+						<h3>GraphQL Metadata</h3>
+						{#if formattedQuery}
+							<button
+								class="copy-btn"
+								onclick={() => formattedQuery && copyQueryToClipboard(formattedQuery)}
+								title="Copy query to clipboard"
+							>
+								{#if queryCopied}
+									✓ Copied!
+								{:else}
+									📋 Copy Query
+								{/if}
+							</button>
+						{/if}
+					</div>
 					<dl>
 						<dt>GQL Calls:</dt>
 						<dd>{selectedRun.gqlCount}</dd>
@@ -409,6 +444,10 @@
 							{selectedRun.gqlMaxTimeMs ? `${selectedRun.gqlMaxTimeMs}ms` : 'N/A'}
 						</dd>
 					</dl>
+					{#if formattedQuery}
+						<h4 style="margin-top: 1rem; margin-bottom: 0.5rem; color: #333;">GraphQL Query</h4>
+						<pre class="code-block query-block">{formattedQuery}</pre>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -721,6 +760,14 @@
 		overflow-y: auto;
 		overflow-x: auto;
 		border: 1px solid #ddd;
+	}
+
+	.query-block {
+		max-height: 300px;
+		overflow-y: auto;
+		overflow-x: auto;
+		border: 1px solid #ddd;
+		background: #f8f9fa;
 	}
 
 	.json-result {
