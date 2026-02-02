@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PromptSummary, VersionComparison } from '$lib/server/types'
+	import { goto } from '$app/navigation'
 
 	let { data } = $props()
 	// TODO: this probably shouldn't be an obj, will its properties affect state change?
@@ -7,7 +8,8 @@
 		companyCode: '',
 		toolName: '',
 		minOccurrences: 1,
-		appName: ''
+		appName: '',
+		limit: 10000
 	})
 
 	//let summaries = $state<PromptSummary[]>(data.summaries)
@@ -38,6 +40,9 @@
 		}
 		if (filters.appName) {
 			params.set('appName', filters.appName)
+		}
+		if (filters.limit) {
+			params.set('limit', String(filters.limit))
 		}
 		// Handle fetch, set loading flag
 		try {
@@ -163,6 +168,18 @@
 					placeholder="1"
 				/>
 			</div>
+			<div class="filter-group">
+				<label for="limit">Result Limit</label>
+				<input
+					id="limit"
+					type="number"
+					bind:value={filters.limit}
+					min="100"
+					max="50000"
+					step="1000"
+					placeholder="10000"
+				/>
+			</div>
 
 			<div class="filter-actions">
 				<button onclick={fetchSummaries} disabled={loading}>
@@ -170,7 +187,13 @@
 				</button>
 				<button
 					onclick={() => {
-						filters = { companyCode: '', toolName: '', minOccurrences: 1, appName: '' }
+						filters = {
+							companyCode: '',
+							toolName: '',
+							minOccurrences: 1,
+							appName: '',
+							limit: 10000
+						}
 						fetchSummaries()
 					}}
 					disabled={loading}
@@ -183,6 +206,7 @@
 	{#if error}
 		<div class="error-banner">{error}</div>
 	{/if}
+
 	<div class="results">
 		<h2>Prompt Summaries ({summaries.length})</h2>
 
@@ -332,8 +356,19 @@
 											{/if}
 										</td>
 										<td>
-											<a href="/tool-runs?id={versionData.exampleRunIds.join(',')}" target="_blank">
-												View {versionData.exampleRunIds.length} examples
+											<a
+												href="/tool-runs?id={versionData.exampleRunIds.join(',')}"
+												target="_blank"
+												title="View Tool Runs"
+												onclick={(e) => {
+													e.stopPropagation()
+													if (versionData.exampleRunIds.length) {
+														goto(`/tool-runs?id=${versionData.exampleRunIds.join(',')}`)
+													}
+												}}
+											>
+												View Tool Runs
+												<i class="fa fa-external-link" aria-hidden="true"></i>
 											</a>
 										</td>
 									</tr>
@@ -380,7 +415,7 @@
 
 <style>
 	.container {
-		max-width: 1400px;
+		max-width: 1600px;
 		margin: 0 auto;
 		padding: 2rem;
 	}
@@ -692,5 +727,219 @@
 		background: white;
 		padding: 0.25rem 0.5rem;
 		border-radius: 4px;
+	}
+
+	/* View Toggle */
+	.view-toggle {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+		border-bottom: 2px solid #dee2e6;
+		padding-bottom: 0;
+	}
+
+	.view-tab {
+		padding: 0.75rem 1.5rem;
+		background: transparent;
+		border: none;
+		border-bottom: 3px solid transparent;
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 500;
+		color: #6c757d;
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: -2px;
+	}
+
+	.view-tab:hover {
+		color: #007bff;
+		background: #f8f9fa;
+	}
+
+	.view-tab.active {
+		color: #007bff;
+		border-bottom-color: #007bff;
+		font-weight: 600;
+	}
+
+	.tab-icon {
+		font-size: 1.2rem;
+	}
+
+	/* Full List View */
+	.full-list-container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.context-card {
+		background: white;
+		border: 1px solid #dee2e6;
+		border-radius: 8px;
+		padding: 1.5rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		transition: box-shadow 0.2s ease;
+	}
+
+	.context-card:hover {
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+
+	.context-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 1rem;
+		gap: 1rem;
+	}
+
+	.context-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.tool-name-large {
+		background: #007bff;
+		color: white;
+		padding: 0.5rem 1rem;
+		border-radius: 6px;
+		font-family: monospace;
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	.run-count {
+		background: #e9ecef;
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #495057;
+	}
+
+	.success-rate-badge {
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+		font-size: 0.875rem;
+		font-weight: 600;
+	}
+
+	.success-rate-badge.high {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	.success-rate-badge.medium {
+		background: #fff3cd;
+		color: #856404;
+	}
+
+	.success-rate-badge.low {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.context-body {
+		margin-bottom: 1rem;
+	}
+
+	.context-full-text {
+		background: #f8f9fa;
+		padding: 1rem;
+		border-radius: 6px;
+		font-family: monospace;
+		font-size: 0.9rem;
+		line-height: 1.6;
+		white-space: pre-wrap;
+		word-wrap: break-word;
+		border-left: 4px solid #007bff;
+		max-height: 400px;
+		overflow-y: auto;
+	}
+
+	.context-footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding-top: 1rem;
+		border-top: 1px solid #dee2e6;
+	}
+
+	.context-stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+
+	.stat-item {
+		font-size: 0.875rem;
+		color: #6c757d;
+		white-space: nowrap;
+	}
+
+	/* Tool Runs Table (Full List View) */
+	.tool-runs-table .tool-name-cell {
+		font-family: monospace;
+		font-weight: 500;
+		color: #007bff;
+	}
+
+	.tool-runs-table .user-context-cell {
+		max-width: 400px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: 0.875rem;
+		color: #666;
+	}
+
+	.status-badge {
+		display: inline-block;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+	}
+
+	.status-badge.success {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	.status-badge.failure {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.status-badge.unknown {
+		background: #fff3cd;
+		color: #856404;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.context-header {
+			flex-direction: column;
+		}
+
+		.context-meta {
+			width: 100%;
+		}
+
+		.view-tab {
+			padding: 0.5rem 1rem;
+			font-size: 0.875rem;
+		}
+
+		.tab-icon {
+			font-size: 1rem;
+		}
 	}
 </style>

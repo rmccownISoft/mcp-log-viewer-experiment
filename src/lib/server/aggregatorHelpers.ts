@@ -49,7 +49,7 @@ export function aggregateByPrompt(toolRuns: ToolRun[]): PromptSummary[] {
 			totalRuns: runs.length,
 			successCount,
 			failureCount,
-			//successRate: runs.length > 0 ? (successCount / runs.length) * 100 : 0,
+			successRate: runs.length > 0 ? (successCount / runs.length) * 100 : 0,
 			avgDurationMs: avgDurationMs ? Math.round(avgDurationMs) : null,
 			minDurationMs,
 			maxDurationMs,
@@ -102,7 +102,7 @@ export function compareByVersion(
 				? Math.round(durationsMs.reduce((sum, d) => sum + d, 0) / durationsMs.length)
 				: null
 
-		const exampleRunIds = runs.slice(0, 3).map((r) => r.id)
+		const exampleRunIds = runs.map((r) => r.id)
 
 		return {
 			version,

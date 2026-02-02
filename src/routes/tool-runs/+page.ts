@@ -10,7 +10,8 @@ export async function load({ url, fetch }) {
 	const toolName = url.searchParams.get('toolName')
 	const status = url.searchParams.get('status')
 	const version = url.searchParams.get('version')
-	const limit = url.searchParams.get('limit') || '50'
+	const id = url.searchParams.get('id')
+	const limit = url.searchParams.get('limit') || '1000'
 	const offset = url.searchParams.get('offset') || '0'
 
 	if (hostname) params.set('hostname', hostname)
@@ -21,6 +22,7 @@ export async function load({ url, fetch }) {
 	if (toolName) params.set('toolName', toolName)
 	if (status) params.set('status', status)
 	if (version) params.set('version', version)
+	if (id) params.set('id', id)
 	params.set('limit', limit)
 	params.set('offset', offset)
 	try {

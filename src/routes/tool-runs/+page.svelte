@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ToolRun } from '$lib/server/types'
 	import { goto } from '$app/navigation'
+	import ToolCallSummary from '$lib/components/ToolCallSummary.svelte'
 
 	let { data } = $props()
 
@@ -15,7 +16,7 @@
 	let statusFilter = $state('')
 	let versionFilter = $state('')
 	let showFailuresOnly = $state(false)
-
+	let limit = $state(1000)
 	// Results - derived from data prop
 	let toolRuns = $derived(data.toolRuns)
 	let loading = $state(false)
@@ -24,7 +25,6 @@
 	let selectedRun = $state<ToolRun | null>(null)
 
 	let offset = $state(0)
-	let limit = $state(50)
 
 	// Sync state with URL/data whenever navigation occurs
 	$effect(() => {
@@ -37,7 +37,7 @@
 		statusFilter = data.initialFilters?.status || ''
 		versionFilter = data.initialFilters?.version || ''
 		offset = data.initialFilters?.offset || 0
-		limit = data.initialFilters?.limit || 100
+		limit = data.initialFilters?.limit || 1000
 	})
 
 	function handleSearch() {
@@ -95,7 +95,7 @@
 	}
 </script>
 
-<div class="page">
+<div class="container">
 	<h1>Tool Runs Browser</h1>
 
 	<div class="filters">
@@ -157,6 +157,18 @@
 					placeholder="Search in messages"
 				/>
 			</div>
+			<div class="filter-group">
+				<label for="limit">Result Limit</label>
+				<input
+					id="limit"
+					type="number"
+					bind:value={limit}
+					min="100"
+					max="50000"
+					step="1000"
+					placeholder="10000"
+				/>
+			</div>
 		</div>
 	</div>
 
@@ -213,9 +225,7 @@
 								{/if}
 							</td>
 							<td>{run.hostname}</td>
-							<td class="user-preview"
-								>{run.userContext ? run.userContext.substring(0, 75) + '...' : 'N/A'}</td
-							>
+							<td class="user-preview">{run.userContext || 'N/A'}</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -253,96 +263,15 @@
 			</div>
 
 			<div class="modal-body">
-				<div class="detail-section">
-					<h3>Basic Info</h3>
-					<dl>
-						<dt>ID:</dt>
-						<dd>{selectedRun.id}</dd>
-						<dt>Timestamp:</dt>
-						<dd>{formatTimestamp(selectedRun.timestamp)}</dd>
-						<dt>Tool Name:</dt>
-						<dd>{selectedRun.toolName}</dd>
-						<dt>Status:</dt>
-						<dd>
-							<span class="badge {getStatusBadgeClass(selectedRun.status)}">
-								{selectedRun.status}
-							</span>
-						</dd>
-						<dt>Duration:</dt>
-						<dd>{formatDuration(selectedRun.durationMs)}</dd>
-						<dt>Version:</dt>
-						<dd>{selectedRun.mcpVersion}</dd>
-					</dl>
-				</div>
-
-				<div class="detail-section">
-					<h3>Context</h3>
-					<dl>
-						<dt>Session ID:</dt>
-						<dd class="monospace session-id-row">
-							{selectedRun.sessionId}
-							<a
-								href="/sessions/{selectedRun.sessionId}"
-								class="session-link"
-								title="View session details"
-								onclick={(e) => {
-									e.stopPropagation()
-									if (selectedRun) {
-										goto(`/sessions/${selectedRun.sessionId}`)
-									}
-								}}
-							>
-								<i class="fa fa-external-link" aria-hidden="true"></i>
-							</a>
-						</dd>
-						<dt>Hostname:</dt>
-						<dd>{selectedRun.hostname}</dd>
-						<dt>Company Code:</dt>
-						<dd>{selectedRun.companyCode}</dd>
-						<dt>App Name:</dt>
-						<dd>{selectedRun.appName}</dd>
-					</dl>
-				</div>
-
-				<div class="detail-section">
-					<h3>User Context</h3>
-					<pre class="code-block">{selectedRun.userContext}</pre>
-				</div>
-
-				{#if selectedRun.status === 'failure' && selectedRun.errorClass}
-					<div class="detail-section error-section">
-						<h3>Error Details</h3>
-						<dl>
-							<dt>Error Class:</dt>
-							<dd>{selectedRun.errorClass}</dd>
-						</dl>
-					</div>
-				{/if}
-
-				<div class="detail-section">
-					<h3>Result ({selectedRun.resultKind})</h3>
-					<pre class="code-block">{selectedRun.resultText}</pre>
-				</div>
-
-				<div class="detail-section">
-					<h3>GraphQL Metadata</h3>
-					<dl>
-						<dt>GQL Calls:</dt>
-						<dd>{selectedRun.gqlCount}</dd>
-						<dt>Max GQL Time:</dt>
-						<dd>
-							{selectedRun.gqlMaxTimeMs ? `${selectedRun.gqlMaxTimeMs}ms` : 'N/A'}
-						</dd>
-					</dl>
-				</div>
+				<ToolCallSummary data={selectedRun} />
 			</div>
 		</div>
 	</div>
 {/if}
 
 <style>
-	.page {
-		max-width: 1400px;
+	.container {
+		max-width: 1600px;
 		margin: 0 auto;
 		padding: 2rem;
 	}
@@ -461,7 +390,7 @@
 	}
 
 	.user-preview {
-		max-width: 400px;
+		max-width: 600px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -564,61 +493,6 @@
 
 	.modal-body {
 		padding: 1.5rem;
-	}
-
-	.detail-section {
-		margin-bottom: 1.5rem;
-	}
-
-	.detail-section h3 {
-		margin-top: 0;
-		margin-bottom: 0.75rem;
-		color: #333;
-	}
-
-	.detail-section dl {
-		display: grid;
-		grid-template-columns: 150px 1fr;
-		gap: 0.5rem;
-		margin: 0;
-	}
-
-	.detail-section dt {
-		font-weight: 600;
-		color: #666;
-	}
-
-	.detail-section dd {
-		margin: 0;
-	}
-
-	.monospace {
-		font-family: monospace;
-		font-size: 0.875rem;
-	}
-
-	.session-id-row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.code-block {
-		background: #f5f5f5;
-		padding: 1rem;
-		border-radius: 4px;
-		overflow-x: auto;
-		font-family: monospace;
-		font-size: 0.875rem;
-		white-space: pre-wrap;
-		word-wrap: break-word;
-	}
-
-	.error-section {
-		background: #fff5f5;
-		padding: 1rem;
-		border-left: 4px solid #c00;
-		border-radius: 4px;
 	}
 	.version-badge {
 		background: #007bff;

@@ -15,6 +15,10 @@ export interface LogRow extends RowDataPacket {
 	company_code: number
 }
 
+export interface ToolResult {
+	text?: string
+	type?: string
+}
 // Parsed meta field structure (what we expect in the JSON)
 export interface LogMeta {
 	sessionId?: string
@@ -25,6 +29,7 @@ export interface LogMeta {
 		parameters?: Record<string, unknown> // Dynamic key-value parameters
 		result?: {
 			isError?: boolean
+			content: Array<ToolResult>
 			[key: string]: any
 		}
 	}
@@ -33,6 +38,7 @@ export interface LogMeta {
 			'User-Agent'?: string
 			'apollographql-client-version'?: string
 		}
+		query?: string
 	}>
 	[key: string]: any // Allow other unknown fields
 }
@@ -51,7 +57,8 @@ export interface Event {
 	userName: string | null
 	userContext: string | null
 	toolStatus: 'success' | 'failure' | 'unknown' | 'none'
-	resultPreview: string | null
+	resultText: Array<string> | null
+	gqlQuery: string | null
 }
 
 // Type for dynamic parameters object with unknown keys
@@ -78,12 +85,13 @@ export interface ToolRun {
 	status: 'success' | 'failure' | 'unknown'
 	durationMs: number | null
 	mcpVersion: string | null
-	errorClass: string | null
-	resultKind: 'json' | 'text' | 'html'
-	resultText: string
+	//errorClass: string | null
+	//resultKind: 'json' | 'text' | 'html'
+	resultText: Array<string> | null
 	gqlCount: number
 	gqlMaxTimeMs: number | null
 	timestamp?: Date
+	gqlQuery: string | null
 }
 
 export interface PromptSummary {

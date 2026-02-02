@@ -9,13 +9,13 @@ export function parseMeta(metaText: string, rowId?: number): LogMeta {
 		const isTruncated = metaLength === 65535
 		const preview = metaText.slice(-100) // Last 100 characters
 
-		console.error('🔴 Failed to parse meta JSON column')
-		console.error(`   Row ID: ${rowId ?? 'unknown'}`)
-		console.error(
-			`   Meta length: ${metaLength} bytes${isTruncated ? ' ⚠️  TRUNCATED AT TEXT LIMIT' : ''}`
-		)
-		console.error(`   Last 100 chars: ...${preview}`)
-		console.error(`   Error: ${error}`)
+		// console.error('🔴 Failed to parse meta JSON column')
+		// console.error(`   Row ID: ${rowId ?? 'unknown'}`)
+		// console.error(
+		// 	`   Meta length: ${metaLength} bytes${isTruncated ? ' ⚠️  TRUNCATED AT TEXT LIMIT' : ''}`
+		// )
+		// console.error(`   Last 100 chars: ...${preview}`)
+		// console.error(`   Error: ${error}`)
 
 		return {}
 	}
@@ -87,7 +87,24 @@ export function getToolStatus(metaObj: LogMeta): 'success' | 'failure' | 'unknow
 	// Tool exists but status unclear
 	return 'unknown'
 }
+export function extractToolQuery(metaObj: LogMeta): string | null {
+	const gqlStuff = metaObj.gql || []
+	if (gqlStuff.length) {
+		const thing = gqlStuff[0] // not sure why this is an array
+		return thing?.query || null
+	}
+	return null
+}
 
+export function extractToolResult(metaObj: LogMeta): Array<string> | null {
+	const resultContents = metaObj.tool?.result?.content || []
+	if (resultContents.length) {
+		return resultContents
+			.map((content) => content.text)
+			.filter((text): text is string => text !== undefined)
+	}
+	return null
+}
 /**
  * Get a preview of the result (first 100 chars)
  */
@@ -123,7 +140,8 @@ export function rowToEvent(row: LogRow): Event {
 		userName: extractUserName(row.message),
 		userContext: extractUserContext(metaObj),
 		toolStatus: getToolStatus(metaObj),
-		resultPreview: getResultPreview(metaObj)
+		gqlQuery: extractToolQuery(metaObj),
+		resultText: extractToolResult(metaObj)
 	}
 }
 
@@ -258,8 +276,7 @@ export function parseToolRun(row: LogRow): ToolRun | null {
 	}
 
 	const status = extractToolStatus(metaObj)
-	const resultText = metaObj?.tool?.result?.text || metaObj?.tool?.result?.error || ''
-
+	//const resultText = metaObj?.tool?.result?.text || metaObj?.tool?.result?.error || ''
 	const { gqlCount, gqlMaxTimeMs } = extractGqlMetadata(metaObj)
 
 	return {
@@ -275,9 +292,10 @@ export function parseToolRun(row: LogRow): ToolRun | null {
 		status,
 		durationMs: extractDurationMs(metaObj),
 		mcpVersion: extractMcpVersion(metaObj),
-		errorClass: status === 'failure' ? classifyError(resultText) : null,
-		resultKind: determineResultKind(resultText),
-		resultText,
+		//errorClass: status === 'failure' ? classifyError(resultText) : null,
+		//resultKind: determineResultKind(resultText),
+		gqlQuery: extractToolQuery(metaObj),
+		resultText: extractToolResult(metaObj),
 		gqlCount,
 		gqlMaxTimeMs
 	}
