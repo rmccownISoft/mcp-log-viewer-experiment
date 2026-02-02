@@ -409,7 +409,7 @@
 							{#if copied}
 								✓ Copied!
 							{:else}
-								📋 Copy
+								📋 Copy Result
 							{/if}
 						</button>
 					</div>
