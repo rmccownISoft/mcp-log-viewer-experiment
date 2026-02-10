@@ -46,10 +46,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			params.push(level)
 		}
 
-		// Text search on message using FULLTEXT
+		// Text search on message using FULLTEXT and the much slower LIKE...probably cause problems
 		if (q) {
-			sql += ' AND MATCH(message) AGAINST (? IN BOOLEAN MODE)'
-			params.push(q)
+			sql += ' AND (MATCH(message) AGAINST (? IN BOOLEAN MODE) OR meta LIKE ?)'
+			params.push(q, `%${q}%`) // safer than LIKE '%" + q + "%' I guess?
 		}
 
 		if (id) {
